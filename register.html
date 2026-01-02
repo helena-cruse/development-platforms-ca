@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Register The Wire</title>
+    <title>Register | The Wire</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
@@ -14,22 +14,47 @@
         class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center"
       >
         <h1 class="text-xl font-semibold">
-          <a href="index.html">News Platform</a>
+          <a href="index.html">The Wire</a>
         </h1>
 
         <nav class="space-x-4">
-          <a href="login.html" class="text-sm text-blue-600 hover:underline"
+          <a
+            href="login.html"
+            id="login-link"
+            class="text-sm text-blue-600 hover:underline"
             >Login</a
           >
-          <a href="register.html" class="text-sm text-blue-600 hover:underline"
+          <a
+            href="register.html"
+            id="register-link"
+            class="text-sm text-blue-600 hover:underline"
             >Register</a
           >
+          <a
+            href="create.html"
+            id="create-link"
+            class="text-sm text-blue-600 hover:underline hidden"
+            >Create article</a
+          >
+          <button
+            id="logout-btn"
+            class="text-sm text-red-600 hover:underline hidden"
+          >
+            Logout
+          </button>
         </nav>
       </div>
     </header>
 
     <main class="max-w-md mx-auto px-4 py-10">
       <h2 class="text-2xl font-semibold mb-6">Create account</h2>
+
+      <div
+        id="message"
+        class="hidden mb-4 rounded border p-3 text-sm"
+        role="status"
+        aria-live="polite"
+      ></div>
 
       <form id="register-form" class="bg-white p-6 rounded shadow space-y-4">
         <div>
@@ -40,6 +65,7 @@
             id="email"
             type="email"
             required
+            autocomplete="email"
             class="w-full border rounded px-3 py-2 focus:outline-none focus:ring"
             placeholder="you@example.com"
           />
@@ -54,6 +80,7 @@
             type="password"
             required
             minlength="6"
+            autocomplete="new-password"
             class="w-full border rounded px-3 py-2 focus:outline-none focus:ring"
             placeholder="Minimum 6 characters"
           />
@@ -65,7 +92,7 @@
         <button
           type="submit"
           id="submit-btn"
-          class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+          class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-60"
         >
           Create account
         </button>
@@ -74,8 +101,6 @@
           Already have an account?
           <a href="login.html" class="text-blue-600 hover:underline">Login</a>
         </p>
-
-        <div id="message" class="text-sm"></div>
       </form>
     </main>
 
@@ -90,28 +115,78 @@
       const messageEl = document.getElementById("message");
       const submitBtn = document.getElementById("submit-btn");
 
+      const loginLink = document.getElementById("login-link");
+      const registerLink = document.getElementById("register-link");
+      const createLink = document.getElementById("create-link");
+      const logoutBtn = document.getElementById("logout-btn");
+
+      function updateNavbar(session) {
+        if (session) {
+          loginLink.classList.add("hidden");
+          registerLink.classList.add("hidden");
+          createLink.classList.remove("hidden");
+          logoutBtn.classList.remove("hidden");
+        } else {
+          loginLink.classList.remove("hidden");
+          registerLink.classList.remove("hidden");
+          createLink.classList.add("hidden");
+          logoutBtn.classList.add("hidden");
+        }
+      }
+
       function setMessage(text, type = "info") {
         messageEl.textContent = text;
+        messageEl.classList.remove("hidden");
+
+        if (type === "error") {
+          messageEl.className =
+            "mb-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-800";
+          return;
+        }
+
+        if (type === "success") {
+          messageEl.className =
+            "mb-4 rounded border border-green-200 bg-green-50 p-3 text-sm text-green-800";
+          return;
+        }
+
         messageEl.className =
-          type === "error"
-            ? "text-sm text-red-600"
-            : type === "success"
-            ? "text-sm text-green-600"
-            : "text-sm text-gray-700";
+          "mb-4 rounded border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800";
+      }
+
+      const {
+        data: { session },
+      } = await supabaseClient.auth.getSession();
+
+      updateNavbar(session);
+
+      supabaseClient.auth.onAuthStateChange((_event, session) => {
+        updateNavbar(session);
+      });
+
+      logoutBtn.addEventListener("click", async () => {
+        await supabaseClient.auth.signOut();
+        window.location.href = "index.html";
+      });
+
+      if (session) {
+        window.location.href = "index.html";
       }
 
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
-        setMessage("");
         submitBtn.disabled = true;
         submitBtn.textContent = "Creating account...";
 
         const email = emailInput.value.trim();
         const password = passwordInput.value;
 
-        const { data, error } = await supabaseClient.auth.signUp({
+        const { error } = await supabaseClient.auth.signUp({
           email,
           password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/login.html`,
+          },
         });
 
         submitBtn.disabled = false;
@@ -123,7 +198,7 @@
         }
 
         setMessage(
-          "Account created! Please check your email to confirm your account before logging in.",
+          "Account created! Please check your email and confirm your account before logging in.",
           "success"
         );
 

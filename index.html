@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>News Platform</title>
+    <title>The Wire</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
@@ -16,20 +16,29 @@
         <h1 class="text-xl font-semibold">News Platform</h1>
 
         <nav class="space-x-4">
-          <a href="login.html" class="text-sm text-blue-600 hover:underline"
+          <a
+            href="login.html"
+            id="login-link"
+            class="text-sm text-blue-600 hover:underline"
             >Login</a
           >
-          <a href="register.html" class="text-sm text-blue-600 hover:underline"
+          <a
+            href="register.html"
+            id="register-link"
+            class="text-sm text-blue-600 hover:underline"
             >Register</a
           >
           <a
             href="create.html"
-            class="text-sm text-blue-600 hover:underline hidden"
             id="create-link"
+            class="text-sm text-blue-600 hover:underline hidden"
           >
             Create article
           </a>
-          <button class="text-sm text-red-600 hidden" id="logout-btn">
+          <button
+            id="logout-btn"
+            class="text-sm text-red-600 hover:underline hidden"
+          >
             Logout
           </button>
         </nav>
@@ -39,9 +48,7 @@
     <main class="max-w-5xl mx-auto px-4 py-8">
       <h2 class="text-2xl font-semibold mb-6">Latest news</h2>
 
-      <div id="articles-list" class="space-y-4">
-        <!-- Articles will be inserted here -->
-      </div>
+      <div id="articles-list" class="space-y-4"></div>
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -50,8 +57,24 @@
       import { supabaseClient } from "./js/supabaseClient.js";
 
       const articlesList = document.getElementById("articles-list");
+      const loginLink = document.getElementById("login-link");
+      const registerLink = document.getElementById("register-link");
       const createLink = document.getElementById("create-link");
       const logoutBtn = document.getElementById("logout-btn");
+
+      function updateNavbar(session) {
+        if (session) {
+          loginLink.classList.add("hidden");
+          registerLink.classList.add("hidden");
+          createLink.classList.remove("hidden");
+          logoutBtn.classList.remove("hidden");
+        } else {
+          loginLink.classList.remove("hidden");
+          registerLink.classList.remove("hidden");
+          createLink.classList.add("hidden");
+          logoutBtn.classList.add("hidden");
+        }
+      }
 
       async function loadArticles() {
         const { data, error } = await supabaseClient
@@ -62,11 +85,10 @@
         if (error) {
           articlesList.innerHTML =
             "<p class='text-red-600'>Could not load articles.</p>";
-          console.error(error);
           return;
         }
 
-        if (data.length === 0) {
+        if (!data || data.length === 0) {
           articlesList.innerHTML =
             "<p class='text-gray-600'>No articles yet.</p>";
           return;
@@ -92,24 +114,22 @@
         });
       }
 
-      async function checkAuth() {
-        const {
-          data: { session },
-        } = await supabaseClient.auth.getSession();
+      const {
+        data: { session },
+      } = await supabaseClient.auth.getSession();
 
-        if (session) {
-          createLink.classList.remove("hidden");
-          logoutBtn.classList.remove("hidden");
-        }
-      }
+      updateNavbar(session);
+
+      supabaseClient.auth.onAuthStateChange((_event, session) => {
+        updateNavbar(session);
+      });
 
       logoutBtn.addEventListener("click", async () => {
         await supabaseClient.auth.signOut();
-        location.reload();
+        window.location.href = "index.html";
       });
 
       loadArticles();
-      checkAuth();
     </script>
   </body>
 </html>
