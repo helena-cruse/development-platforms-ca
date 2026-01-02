@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>News Platform</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+
+  <body class="bg-gray-100 text-gray-900 min-h-screen">
+    <header class="bg-white shadow">
+      <div
+        class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center"
+      >
+        <h1 class="text-xl font-semibold">News Platform</h1>
+
+        <nav class="space-x-4">
+          <a href="login.html" class="text-sm text-blue-600 hover:underline"
+            >Login</a
+          >
+          <a href="register.html" class="text-sm text-blue-600 hover:underline"
+            >Register</a
+          >
+          <a
+            href="create.html"
+            class="text-sm text-blue-600 hover:underline hidden"
+            id="create-link"
+          >
+            Create article
+          </a>
+          <button class="text-sm text-red-600 hidden" id="logout-btn">
+            Logout
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 py-8">
+      <h2 class="text-2xl font-semibold mb-6">Latest news</h2>
+
+      <div id="articles-list" class="space-y-4">
+        <!-- Articles will be inserted here -->
+      </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script type="module">
+      import { supabaseClient } from "./js/supabaseClient.js";
+
+      const articlesList = document.getElementById("articles-list");
+      const createLink = document.getElementById("create-link");
+      const logoutBtn = document.getElementById("logout-btn");
+
+      async function loadArticles() {
+        const { data, error } = await supabaseClient
+          .from("articles")
+          .select("id, title, body, category, created_at")
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          articlesList.innerHTML =
+            "<p class='text-red-600'>Could not load articles.</p>";
+          console.error(error);
+          return;
+        }
+
+        if (data.length === 0) {
+          articlesList.innerHTML =
+            "<p class='text-gray-600'>No articles yet.</p>";
+          return;
+        }
+
+        articlesList.innerHTML = "";
+
+        data.forEach((article) => {
+          const articleEl = document.createElement("article");
+          articleEl.className = "bg-white p-4 rounded shadow";
+
+          articleEl.innerHTML = `
+            <h3 class="text-lg font-semibold mb-1">${article.title}</h3>
+            <p class="text-sm text-gray-500 mb-2">
+              ${article.category} · ${new Date(
+            article.created_at
+          ).toLocaleDateString()}
+            </p>
+            <p>${article.body}</p>
+          `;
+
+          articlesList.appendChild(articleEl);
+        });
+      }
+
+      async function checkAuth() {
+        const {
+          data: { session },
+        } = await supabaseClient.auth.getSession();
+
+        if (session) {
+          createLink.classList.remove("hidden");
+          logoutBtn.classList.remove("hidden");
+        }
+      }
+
+      logoutBtn.addEventListener("click", async () => {
+        await supabaseClient.auth.signOut();
+        location.reload();
+      });
+
+      loadArticles();
+      checkAuth();
+    </script>
+  </body>
+</html>
