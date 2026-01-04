@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Article | The Wire</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+
+  <body class="bg-zinc-100 text-zinc-950 min-h-screen">
+    <header class="bg-white border-b border-zinc-200">
+      <div
+        class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between"
+      >
+        <a href="index.html" class="flex items-center gap-3">
+          <img
+            src="media/thewirelogo.web.png"
+            alt="The Wire"
+            class="h-10 sm:h-12 md:h-14 w-auto"
+          />
+        </a>
+
+        <nav class="flex items-center gap-4 text-sm">
+          <a
+            href="login.html"
+            id="login-link"
+            class="text-zinc-700 hover:text-zinc-950 hover:underline underline-offset-4"
+            >Login</a
+          >
+          <a
+            href="register.html"
+            id="register-link"
+            class="text-zinc-700 hover:text-zinc-950 hover:underline underline-offset-4"
+            >Register</a
+          >
+          <a
+            href="create.html"
+            id="create-link"
+            class="hidden bg-black text-white px-3 py-2 rounded hover:opacity-90"
+            >Create article</a
+          >
+          <button
+            id="logout-btn"
+            class="hidden text-red-700 hover:text-red-800 hover:underline underline-offset-4"
+          >
+            Logout
+          </button>
+        </nav>
+      </div>
+
+      <div class="bg-red-600 text-white">
+        <div class="max-w-6xl mx-auto px-4 py-2 flex items-center gap-3">
+          <span
+            class="bg-black/25 px-2 py-1 rounded text-xs font-semibold uppercase tracking-wider"
+            >The Wire</span
+          >
+          <p class="text-sm font-medium truncate">Plug into the story</p>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8">
+      <a
+        href="index.html"
+        class="inline-flex items-center gap-2 text-sm text-zinc-700 hover:text-zinc-950 hover:underline underline-offset-4"
+      >
+        <span aria-hidden="true">←</span> Back to latest
+      </a>
+
+      <div id="state" class="mt-6 bg-white rounded border border-zinc-200 p-6">
+        <p class="text-zinc-700">Loading article…</p>
+      </div>
+
+      <article id="article" class="hidden mt-6">
+        <div class="bg-white rounded border border-zinc-200 overflow-hidden">
+          <div class="p-6 sm:p-8">
+            <div class="flex flex-wrap items-center gap-2 mb-3">
+              <span
+                id="category"
+                class="inline-flex items-center bg-red-600 text-white text-xs font-semibold px-2 py-1 rounded"
+              ></span>
+              <span id="date" class="text-xs text-zinc-500"></span>
+            </div>
+
+            <h1
+              id="title"
+              class="text-3xl sm:text-4xl font-extrabold leading-tight"
+            ></h1>
+
+            <div
+              id="images"
+              class="hidden mt-6 grid sm:grid-cols-2 gap-3"
+            ></div>
+
+            <div class="mt-6 prose prose-zinc max-w-none">
+              <p id="body" class="whitespace-pre-line"></p>
+            </div>
+          </div>
+        </div>
+      </article>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script type="module">
+      import { supabaseClient } from "./js/supabaseClient.js";
+
+      const loginLink = document.getElementById("login-link");
+      const registerLink = document.getElementById("register-link");
+      const createLink = document.getElementById("create-link");
+      const logoutBtn = document.getElementById("logout-btn");
+
+      function updateNavbar(session) {
+        if (session) {
+          loginLink.classList.add("hidden");
+          registerLink.classList.add("hidden");
+          createLink.classList.remove("hidden");
+          logoutBtn.classList.remove("hidden");
+        } else {
+          loginLink.classList.remove("hidden");
+          registerLink.classList.remove("hidden");
+          createLink.classList.add("hidden");
+          logoutBtn.classList.add("hidden");
+        }
+      }
+
+      const {
+        data: { session },
+      } = await supabaseClient.auth.getSession();
+
+      updateNavbar(session);
+
+      supabaseClient.auth.onAuthStateChange((_event, newSession) => {
+        updateNavbar(newSession);
+      });
+
+      logoutBtn.addEventListener("click", async () => {
+        await supabaseClient.auth.signOut();
+        window.location.href = "index.html";
+      });
+
+      const stateEl = document.getElementById("state");
+      const articleEl = document.getElementById("article");
+      const titleEl = document.getElementById("title");
+      const bodyEl = document.getElementById("body");
+      const categoryEl = document.getElementById("category");
+      const dateEl = document.getElementById("date");
+      const imagesEl = document.getElementById("images");
+
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("id");
+
+      if (!id) {
+        stateEl.innerHTML =
+          "<p class='text-red-700 font-semibold'>Missing article id.</p>";
+      } else {
+        const { data, error } = await supabaseClient
+          .from("articles")
+          .select("id, title, body, category, created_at, image_urls")
+          .eq("id", id)
+          .single();
+
+        if (error || !data) {
+          stateEl.innerHTML =
+            "<p class='text-red-700 font-semibold'>Could not load the article.</p>";
+        } else {
+          document.title = `${data.title} | The Wire`;
+
+          categoryEl.textContent = data.category || "News";
+          dateEl.textContent = new Date(data.created_at).toLocaleString();
+          titleEl.textContent = data.title || "Untitled";
+          bodyEl.textContent = data.body || "";
+
+          const urls = Array.isArray(data.image_urls) ? data.image_urls : [];
+          if (urls.length > 0) {
+            imagesEl.classList.remove("hidden");
+            imagesEl.innerHTML = urls
+              .slice(0, 10)
+              .map(
+                (url) => `
+                  <div class="bg-zinc-100 rounded overflow-hidden border border-zinc-200">
+                    <img src="${url}" alt="" class="w-full h-56 object-cover" loading="lazy" />
+                  </div>
+                `
+              )
+              .join("");
+          }
+
+          stateEl.classList.add("hidden");
+          articleEl.classList.remove("hidden");
+        }
+      }
+    </script>
+  </body>
+</html>

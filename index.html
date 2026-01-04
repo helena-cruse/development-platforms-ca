@@ -9,127 +9,198 @@
   </head>
 
   <body class="bg-gray-100 text-gray-900 min-h-screen">
-    <header class="bg-white shadow">
+    <!-- Header -->
+    <header class="bg-white border-b">
       <div
-        class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center"
+        class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between"
       >
-        <h1 class="text-xl font-semibold">News Platform</h1>
+        <a href="index.html" class="flex items-center">
+          <img
+            src="media/thewirelogo.web.png"
+            alt="The Wire"
+            class="h-8 md:h-9"
+          />
+        </a>
 
-        <nav class="space-x-4">
+        <nav class="space-x-4 text-sm">
           <a
             href="login.html"
             id="login-link"
-            class="text-sm text-blue-600 hover:underline"
+            class="text-blue-600 hover:underline"
             >Login</a
           >
           <a
             href="register.html"
             id="register-link"
-            class="text-sm text-blue-600 hover:underline"
+            class="text-blue-600 hover:underline"
             >Register</a
           >
           <a
             href="create.html"
             id="create-link"
-            class="text-sm text-blue-600 hover:underline hidden"
+            class="text-blue-600 hover:underline hidden"
+            >Create article</a
           >
-            Create article
-          </a>
-          <button
-            id="logout-btn"
-            class="text-sm text-red-600 hover:underline hidden"
-          >
+          <button id="logout-btn" class="text-red-600 hover:underline hidden">
             Logout
           </button>
         </nav>
       </div>
     </header>
 
-    <main class="max-w-5xl mx-auto px-4 py-8">
-      <h2 class="text-2xl font-semibold mb-6">Latest news</h2>
+    <!-- Breaking bar -->
+    <div class="bg-red-600 text-white text-sm">
+      <div class="max-w-6xl mx-auto px-4 py-2 flex gap-3">
+        <span class="font-semibold uppercase tracking-wide">Breaking</span>
+        <span id="breaking-text">
+          New AI tools are reshaping how small teams build software
+        </span>
+      </div>
+    </div>
 
-      <div id="articles-list" class="space-y-4"></div>
+    <main class="max-w-6xl mx-auto px-4 py-8 space-y-10">
+      <!-- Top story -->
+      <section id="top-story" class="grid md:grid-cols-2 gap-6">
+        <div class="bg-gray-300 rounded h-64 md:h-full"></div>
+
+        <div class="flex flex-col justify-center">
+          <span class="text-red-600 font-semibold mb-2">Top story</span>
+          <h2 class="text-3xl font-bold leading-tight mb-3">
+            New AI tool promises faster web development for small teams
+          </h2>
+          <p class="text-gray-700 mb-4">
+            A newly launched AI-powered platform aims to reduce repetitive
+            development work and help small teams ship faster without
+            sacrificing quality.
+          </p>
+          <span class="text-sm text-gray-500">Tech · 02/01/2026</span>
+        </div>
+      </section>
+
+      <!-- Sections -->
+      <section class="space-y-8">
+        <!-- Tech -->
+        <div>
+          <h3 class="text-xl font-semibold mb-4 border-b pb-2">Tech</h3>
+          <div class="grid md:grid-cols-3 gap-4">
+            <article class="bg-white p-4 rounded shadow">
+              <h4 class="font-semibold mb-1">
+                AI tools enter everyday workflows
+              </h4>
+              <p class="text-sm text-gray-600">
+                Developers are increasingly relying on automation in early
+                project stages.
+              </p>
+            </article>
+
+            <article class="bg-white p-4 rounded shadow">
+              <h4 class="font-semibold mb-1">
+                Startups rethink frontend stacks
+              </h4>
+              <p class="text-sm text-gray-600">
+                Simpler tooling gains traction among small teams.
+              </p>
+            </article>
+
+            <article class="bg-white p-4 rounded shadow">
+              <h4 class="font-semibold mb-1">
+                The rise of design-first development
+              </h4>
+              <p class="text-sm text-gray-600">
+                UI decisions increasingly drive technical choices.
+              </p>
+            </article>
+          </div>
+        </div>
+
+        <!-- Sports -->
+        <div>
+          <h3 class="text-xl font-semibold mb-4 border-b pb-2">Sports</h3>
+          <div class="grid md:grid-cols-3 gap-4">
+            <article class="bg-white p-4 rounded shadow">
+              <h4 class="font-semibold mb-1">
+                Clubs adapt to new financial rules
+              </h4>
+              <p class="text-sm text-gray-600">
+                Regulations reshape transfer strategies.
+              </p>
+            </article>
+
+            <article class="bg-white p-4 rounded shadow">
+              <h4 class="font-semibold mb-1">
+                Technology changes match analysis
+              </h4>
+              <p class="text-sm text-gray-600">
+                Data insights play a growing role on the sidelines.
+              </p>
+            </article>
+
+            <article class="bg-white p-4 rounded shadow">
+              <h4 class="font-semibold mb-1">Young talents break through</h4>
+              <p class="text-sm text-gray-600">
+                A new generation challenges established stars.
+              </p>
+            </article>
+          </div>
+        </div>
+
+        <!-- Culture -->
+        <div>
+          <h3 class="text-xl font-semibold mb-4 border-b pb-2">Culture</h3>
+          <div class="grid md:grid-cols-3 gap-4">
+            <article class="bg-white p-4 rounded shadow">
+              <h4 class="font-semibold mb-1">
+                Streaming reshapes storytelling
+              </h4>
+              <p class="text-sm text-gray-600">
+                Formats evolve as audiences fragment.
+              </p>
+            </article>
+
+            <article class="bg-white p-4 rounded shadow">
+              <h4 class="font-semibold mb-1">
+                Designers blur digital boundaries
+              </h4>
+              <p class="text-sm text-gray-600">
+                Visual identity becomes more experimental.
+              </p>
+            </article>
+
+            <article class="bg-white p-4 rounded shadow">
+              <h4 class="font-semibold mb-1">Culture in a connected world</h4>
+              <p class="text-sm text-gray-600">
+                Global trends influence local scenes.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <script type="module">
       import { supabaseClient } from "./js/supabaseClient.js";
 
-      const articlesList = document.getElementById("articles-list");
       const loginLink = document.getElementById("login-link");
       const registerLink = document.getElementById("register-link");
       const createLink = document.getElementById("create-link");
       const logoutBtn = document.getElementById("logout-btn");
 
-      function updateNavbar(session) {
-        if (session) {
-          loginLink.classList.add("hidden");
-          registerLink.classList.add("hidden");
-          createLink.classList.remove("hidden");
-          logoutBtn.classList.remove("hidden");
-        } else {
-          loginLink.classList.remove("hidden");
-          registerLink.classList.remove("hidden");
-          createLink.classList.add("hidden");
-          logoutBtn.classList.add("hidden");
-        }
-      }
-
-      async function loadArticles() {
-        const { data, error } = await supabaseClient
-          .from("articles")
-          .select("id, title, body, category, created_at")
-          .order("created_at", { ascending: false });
-
-        if (error) {
-          articlesList.innerHTML =
-            "<p class='text-red-600'>Could not load articles.</p>";
-          return;
-        }
-
-        if (!data || data.length === 0) {
-          articlesList.innerHTML =
-            "<p class='text-gray-600'>No articles yet.</p>";
-          return;
-        }
-
-        articlesList.innerHTML = "";
-
-        data.forEach((article) => {
-          const articleEl = document.createElement("article");
-          articleEl.className = "bg-white p-4 rounded shadow";
-
-          articleEl.innerHTML = `
-            <h3 class="text-lg font-semibold mb-1">${article.title}</h3>
-            <p class="text-sm text-gray-500 mb-2">
-              ${article.category} · ${new Date(
-            article.created_at
-          ).toLocaleDateString()}
-            </p>
-            <p>${article.body}</p>
-          `;
-
-          articlesList.appendChild(articleEl);
-        });
-      }
-
       const {
         data: { session },
       } = await supabaseClient.auth.getSession();
 
-      updateNavbar(session);
-
-      supabaseClient.auth.onAuthStateChange((_event, session) => {
-        updateNavbar(session);
-      });
+      if (session) {
+        loginLink.classList.add("hidden");
+        registerLink.classList.add("hidden");
+        createLink.classList.remove("hidden");
+        logoutBtn.classList.remove("hidden");
+      }
 
       logoutBtn.addEventListener("click", async () => {
         await supabaseClient.auth.signOut();
-        window.location.href = "index.html";
+        location.reload();
       });
-
-      loadArticles();
     </script>
   </body>
 </html>

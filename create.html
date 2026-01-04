@@ -101,6 +101,27 @@
           ></textarea>
         </div>
 
+        <div>
+          <label for="images" class="block text-sm font-medium mb-1"
+            >Images (max 10)</label
+          >
+          <input
+            id="images"
+            type="file"
+            accept="image/*"
+            multiple
+            class="w-full border rounded px-3 py-2 bg-white"
+          />
+          <p class="text-xs text-gray-500 mt-1">
+            You can upload up to 10 images.
+          </p>
+        </div>
+
+        <div
+          id="preview"
+          class="hidden grid grid-cols-2 sm:grid-cols-3 gap-3"
+        ></div>
+
         <button
           type="submit"
           id="submit-btn"
@@ -125,6 +146,8 @@
       const titleInput = document.getElementById("title");
       const categoryInput = document.getElementById("category");
       const bodyInput = document.getElementById("body");
+      const imagesInput = document.getElementById("images");
+      const previewEl = document.getElementById("preview");
       const submitBtn = document.getElementById("submit-btn");
       const messageEl = document.getElementById("message");
 
@@ -162,11 +185,50 @@
           "mb-4 rounded border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800";
       }
 
+      function clearMessage() {
+        messageEl.textContent = "";
+        messageEl.className = "hidden mb-4 rounded border p-3 text-sm";
+      }
+
+      function clearPreview() {
+        previewEl.innerHTML = "";
+        previewEl.classList.add("hidden");
+      }
+
+      function renderPreview(files) {
+        clearPreview();
+        if (!files.length) return;
+
+        previewEl.classList.remove("hidden");
+
+        files.forEach((file) => {
+          const url = URL.createObjectURL(file);
+
+          const card = document.createElement("div");
+          card.className =
+            "relative rounded overflow-hidden border bg-white aspect-video";
+
+          const img = document.createElement("img");
+          img.src = url;
+          img.alt = "Selected image";
+          img.className = "w-full h-full object-cover";
+
+          const badge = document.createElement("div");
+          badge.className =
+            "absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs px-2 py-1 truncate";
+          badge.textContent = file.name;
+
+          card.appendChild(img);
+          card.appendChild(badge);
+          previewEl.appendChild(card);
+        });
+      }
+
       const {
-        data: { session },
+        data: { session: initialSession },
       } = await supabaseClient.auth.getSession();
 
-      updateNavbar(session);
+      updateNavbar(initialSession);
 
       supabaseClient.auth.onAuthStateChange((_event, session) => {
         updateNavbar(session);
@@ -177,12 +239,27 @@
         window.location.href = "index.html";
       });
 
-      if (!session) {
+      if (!initialSession) {
         window.location.href = "login.html";
       }
 
+      imagesInput.addEventListener("change", () => {
+        clearMessage();
+
+        const files = Array.from(imagesInput.files || []);
+        if (files.length > 10) {
+          setMessage("Max 10 images allowed.", "error");
+          imagesInput.value = "";
+          clearPreview();
+          return;
+        }
+
+        renderPreview(files);
+      });
+
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
+        clearMessage();
 
         submitBtn.disabled = true;
         submitBtn.textContent = "Publishing...";
@@ -193,13 +270,61 @@
 
         const {
           data: { session },
+          error: sessionError,
         } = await supabaseClient.auth.getSession();
+
+        if (sessionError || !session) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Publish article";
+          setMessage("You must be logged in.", "error");
+          window.location.href = "login.html";
+          return;
+        }
+
+        const files = Array.from(imagesInput.files || []);
+        if (files.length > 10) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Publish article";
+          setMessage("Max 10 images allowed.", "error");
+          return;
+        }
+
+        const imageUrls = [];
+
+        if (files.length) {
+          setMessage("Uploading images...", "info");
+
+          for (const file of files) {
+            const fileExt = (file.name.split(".").pop() || "jpg").toLowerCase();
+            const fileName = `${
+              session.user.id
+            }/${crypto.randomUUID()}.${fileExt}`;
+
+            const { error: uploadError } = await supabaseClient.storage
+              .from("article-images")
+              .upload(fileName, file, { upsert: false });
+
+            if (uploadError) {
+              submitBtn.disabled = false;
+              submitBtn.textContent = "Publish article";
+              setMessage(uploadError.message, "error");
+              return;
+            }
+
+            const { data } = supabaseClient.storage
+              .from("article-images")
+              .getPublicUrl(fileName);
+
+            if (data?.publicUrl) imageUrls.push(data.publicUrl);
+          }
+        }
 
         const { error } = await supabaseClient.from("articles").insert({
           title,
           body,
           category,
           submitted_by: session.user.id,
+          image_urls: imageUrls,
         });
 
         submitBtn.disabled = false;
@@ -212,6 +337,7 @@
 
         setMessage("Article published successfully!", "success");
         form.reset();
+        clearPreview();
 
         setTimeout(() => {
           window.location.href = "index.html";
